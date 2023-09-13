@@ -66,6 +66,7 @@ public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra iş
         WriteLogRecord("Entered the room");
         
         Debug.Log(PhotonNetwork.InRoom ? "InRoom!!" : "NOT InRoom!!"); // InRoom?
+        PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
@@ -116,6 +117,9 @@ public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra iş
         logText.text = name;
     }
 
+
+    #region ButtonClick
+
     public void Disconnected() // Kullanıcı online oynamak istemiyorsa bu şekilde bağlantısını kesebilir.
     {
         PhotonNetwork.Disconnect();
@@ -141,4 +145,8 @@ public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra iş
     {
         WriteLogRecord(PhotonNetwork.GetPing().ToString());
     }
+
+    #endregion
+    
+    
 }
