@@ -33,8 +33,8 @@ namespace Photon.Realtime
     #endif
 
     #if UNITY_WEBGL
-    // import UnityWebRequest
-    using UnityEngine.Networking;
+    // import WWW class
+    using UnityEngine;
     #endif
 
     /// <summary>
@@ -42,45 +42,34 @@ namespace Photon.Realtime
     /// </summary>
     public abstract class PhotonPing : IDisposable
     {
-        /// <summary>Caches the last exception/error message, if any.</summary>
         public string DebugString = "";
-
-        /// <summary>True of the ping was successful.</summary>
         public bool Successful;
 
-        /// <summary>True if there was any result.</summary>
         protected internal bool GotResult;
 
-        /// <summary>Length of a ping.</summary>
         protected internal int PingLength = 13;
 
-        /// <summary>Bytes to send in a (Photon UDP) ping.</summary>
         protected internal byte[] PingBytes = new byte[] { 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x7d, 0x00 };
 
-        /// <summary>Randomized number to identify a ping.</summary>
         protected internal byte PingId;
 
         private static readonly System.Random RandomIdProvider = new System.Random();
 
-        /// <summary>Begins sending a ping.</summary>
         public virtual bool StartPing(string ip)
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>Check if done.</summary>
         public virtual bool Done()
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>Dispose of this ping.</summary>
         public virtual void Dispose()
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>Initialize this ping (GotResult, Successful, PingId).</summary>
         protected internal void Init()
         {
             this.GotResult = false;
@@ -120,8 +109,7 @@ namespace Photon.Realtime
                     }
 
                     this.sock.ReceiveTimeout = 5000;
-                    int port = (RegionHandler.PortToPingOverride != 0) ? RegionHandler.PortToPingOverride : 5055;
-                    this.sock.Connect(ip, port);
+                    this.sock.Connect(ip, 5055);
                 }
 
 
@@ -132,16 +120,12 @@ namespace Photon.Realtime
             catch (Exception e)
             {
                 this.sock = null;
-                System.Diagnostics.Debug.WriteLine(e.ToString());
-
-                // bubble up
-                throw;
+                Console.WriteLine(e);
             }
 
             return false;
         }
 
-        /// <summary>Check if done.</summary>
         public override bool Done()
         {
             if (this.GotResult || this.sock == null)
@@ -182,11 +166,8 @@ namespace Photon.Realtime
             return true;
         }
 
-        /// <summary>Dispose of this ping.</summary>
         public override void Dispose()
         {
-            if (this.sock == null) { return; }
-
             try
             {
                 this.sock.Close();
@@ -215,8 +196,7 @@ namespace Photon.Realtime
             {
                 this.Init();
 
-                int port = (RegionHandler.PortToPingOverride != 0) ? RegionHandler.PortToPingOverride : 5055;
-                EndpointPair endPoint = new EndpointPair(null, string.Empty, new HostName(host), port.ToString());
+                EndpointPair endPoint = new EndpointPair(null, string.Empty, new HostName(host), "5055");
                 this.sock = new DatagramSocket();
                 this.sock.MessageReceived += this.OnMessageReceived;
 
@@ -227,7 +207,6 @@ namespace Photon.Realtime
             }
         }
 
-        /// <summary>Check if done.</summary>
         public override bool Done()
         {
             lock (this.syncer)
@@ -236,7 +215,6 @@ namespace Photon.Realtime
             }
         }
 
-        /// <summary>Dispose of this ping.</summary>
         public override void Dispose()
         {
             lock (this.syncer)
@@ -468,15 +446,14 @@ namespace Photon.Realtime
     #if UNITY_WEBGL
     public class PingHttp : PhotonPing
     {
-        private UnityWebRequest webRequest;
+        private WWW webRequest;
 
         public override bool StartPing(string address)
         {
             base.Init();
 
             address = "https://" + address + "/photon/m/?ping&r=" + UnityEngine.Random.Range(0, 10000);
-            this.webRequest = UnityWebRequest.Get(address);
-            this.webRequest.SendWebRequest();
+            this.webRequest = new WWW(address);
             return true;
         }
 
