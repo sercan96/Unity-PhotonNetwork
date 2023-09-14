@@ -2,21 +2,28 @@
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
+using TMPro;
 
 public class Player : MonoBehaviour
 {
     public GameObject parctefek;
     private PhotonView pw;
+    private Animator animator;
+    public TextMeshProUGUI nameTxt;
+    public GameObject canvas;
     void Start()
     {
         pw = GetComponent<PhotonView>();
+        animator = GetComponentInChildren<Animator>();
+        nameTxt.text = pw.Owner.NickName;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (pw.IsMine)
+        if (pw.IsMine) // Sadece kendi kullanıcısının bu kodları okumasını sağlar.
         {
+            canvas.transform.rotation = Quaternion.Euler(90, 0, 0);
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
        
             RaycastHit hit;
@@ -41,7 +48,17 @@ public class Player : MonoBehaviour
 
                     Debug.Log(hit.transform.gameObject.tag);
 
-                Instantiate(parctefek, transform.position, Quaternion.Euler(-90f, transform.eulerAngles.y, 0f));
+                //Instantiate(parctefek, transform.position, Quaternion.Euler(-90f, transform.eulerAngles.y, 0f));
+                PhotonNetwork.Instantiate("FirePart", transform.position, Quaternion.Euler(-90f, transform.eulerAngles.y, 0f));
+            }
+
+            if (Input.GetKey(KeyCode.Space))
+            {
+                animator.SetBool("big",true);
+            }
+            else
+            {
+                animator.SetBool("big",false);
             }
         }
         

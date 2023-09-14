@@ -1,14 +1,17 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using UnityEngine.UI;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
     public TextMeshProUGUI logText;
+    public TMP_InputField userName;
+    public TMP_InputField roomName;
+    public GameObject entryCanvas;
+    public GameObject playerListTable;
     void Start()
     {
         #region Simple network systems
@@ -41,7 +44,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         //PhotonNetwork.ReconnectAndRejoin();
     }
 
-public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra işleme hazır olup olmadığını kontrol eder.
+    public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra işleme hazır olup olmadığını kontrol eder.
     {
         WriteLogRecord("Connect to the Server");
         PhotonNetwork.JoinLobby();
@@ -58,13 +61,13 @@ public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra iş
 
         // İf ı create room:
         // PhotonNetwork.CreateRoom("room name", new RoomOptions{MaxPlayers = 2,IsOpen = true,IsVisible = true},TypedLobby.Default);
-        PhotonNetwork.JoinOrCreateRoom("room name", new RoomOptions{MaxPlayers = 2,IsOpen = true,IsVisible = true},TypedLobby.Default);
+        //PhotonNetwork.JoinOrCreateRoom("room name", new RoomOptions{MaxPlayers = 2,IsOpen = true,IsVisible = true},TypedLobby.Default);
     }
 
     public override void OnJoinedRoom() // İf Positive
     {
         WriteLogRecord("Entered the room");
-        
+        entryCanvas.SetActive(false);
         Debug.Log(PhotonNetwork.InRoom ? "InRoom!!" : "NOT InRoom!!"); // InRoom?
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
     }
@@ -106,6 +109,23 @@ public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra iş
             PhotonNetwork.LeaveLobby();
         }
 
+        if (Input.GetKey(KeyCode.Tab))
+        {
+            playerListTable.SetActive(true);
+            playerListTable.transform.Find("listTxt").GetComponent<Text>().text = " ";
+            foreach (Photon.Realtime.Player p in PhotonNetwork.PlayerList)
+            {
+                playerListTable.transform.Find("listTxt").GetComponent<Text>().text += p.NickName + " - \n";
+            }
+
+            Debug.Log(PhotonNetwork.PlayerList.Length);
+          
+        }
+        else
+        {
+            playerListTable.SetActive(false);
+        }
+
         //Debug.Log(PhotonNetwork.IsConnected ? "CONNECT!!" : "NOT CONNECT!!"); // IsConnect?
         //Debug.Log(PhotonNetwork.InLobby ? "LOBBY!!" : "NOT LOBBY!!"); // InLobby?
         //Debug.Log(PhotonNetwork.InRoom ? "InRoom!!" : "NOT InRoom!!"); // InRoom?
@@ -114,7 +134,7 @@ public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra iş
 
     private void WriteLogRecord(string name)
     {
-        logText.text = name;
+        //logText.text = name;
     }
 
 
@@ -147,6 +167,16 @@ public override void OnConnectedToMaster() // Oyuncunun bağlandıktan sonra iş
     }
 
     #endregion
+
+    public void EnterRoom()
+    {
+        PhotonNetwork.NickName = userName.text;
+        PhotonNetwork.JoinOrCreateRoom("room name", new RoomOptions{MaxPlayers = 2,IsOpen = true,IsVisible = true},TypedLobby.Default);
+    }
     
-    
+    public void EnterRandomRoom()
+    {
+        PhotonNetwork.NickName = userName.text;
+        PhotonNetwork.JoinRandomRoom();
+    }
 }
